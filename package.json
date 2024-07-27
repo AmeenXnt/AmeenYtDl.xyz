@@ -1,0 +1,17 @@
+{
+  "name": "music-app",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "ytdl-core": "^4.10.1",
+    "yt-search": "^1.0.0",
+    "fs-extra": "^10.0.0",
+    "stream": "^0.0.2",
+    "util": "^0.12.4",
+    "os": "^0.1.1"
+  }
+}
