@@ -1,1 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Search and Download</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #eee; }
+        header { background-color: #1db954; color: white; padding: 15px 20px; text-align: center; }
+        .search-bar { display: flex; justify-content: center; margin: 20px; }
+        .search-bar input { width: 300px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        .song { display: flex; align-items: center; margin: 20px; padding: 10px; background-color: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 5px; }
+        .song img { width: 50px; height: 50px; border-radius: 5px; }
+        .song-info { flex-grow: 1; margin-left: 15px; }
+        .song-title { font-size: 18px; margin: 0; }
+        .song-artist { font-size: 14px; color: #555; }
+        .play-button { background-color: #1db954; border: none; color: white; padding: 10px; border-radius: 50%; cursor: pointer; }
+        .play-button:hover { background-color: #1ed760; }
+        .player-popup { position: fixed; bottom: 10px; right: 10px; width: 300px; padding: 15px; background-color: white; box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 10px; display: none; align-items: center; }
+        .player-popup img { width: 50px; height: 50px; border-radius: 5px; }
+        .player-popup .song-info { margin-left: 15px; }
+        .close-button { background-color: #ff4d4d; border: none; color: white; padding: 5px 10px; border-radius: 50%; cursor: pointer; margin-left: auto; }
+        .close-button:hover { background-color: #ff6666; }
+        audio { width: 100%; margin-top: 10px; }
+    </style>
+</head>
+<body>
 
+<header>
+    <h1>Music Search and Download</h1>
+</header>
+<div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search for songs or artists..." onkeyup="searchSongs()">
+</div>
+<div id="song-list"></div>
+<div id="player-popup" class="player-popup">
+    <img id="player-img" src="" alt="Playing song">
+    <div class="song-info">
+        <p id="player-title" class="song-title"></p>
+        <p id="player-artist" class="song-artist"></p>
+    </div>
+    <button class="close-button" onclick="closePlayer()">X</button>
+    <audio id="audio-player" controls>
+        <source id="audio-source" src="" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+</div>
+
+<script>
+    async function searchSongs() {
+        const query = document.getElementById('searchInput').value;
+        const songList = document.getElementById('song-list');
+
+        songList.innerHTML = '';
+
+        if (!query) return;
+
+        try {
+            const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+            const results = await response.json();
+
+            results.forEach(item => {
+                const songDiv = document.createElement('div');
+                songDiv.classList.add('song');
+                songDiv.innerHTML = `
+                    <img src="${item.thumbnail}" alt="${item.title}">
+                    <div class="song-info">
+                        <p class="song-title">${item.title}</p>
+                        <p class="song-artist">${item.views} views - ${item.ago}</p>
+                    </div>
+                    <button class="play-button" onclick="playSong('${item.url}')">Play</button>
+                `;
+                songList.appendChild(songDiv);
+            });
+        } catch (error) {
+            console.error('Error searching for songs:', error);
+        }
+    }
+
+    async function playSong(url) {
+        try {
+            const response = await fetch(`/download?url=${encodeURIComponent(url)}`);
+            const blob = await response.blob();
+            const audioUrl = URL.createObjectURL(blob);
+
+            const playerPopup = document.getElementById('player-popup');
+            const audioPlayer = document.getElementById('audio-player');
+            const audioSource = document.getElementById('audio-source');
+
+            audioSource.src = audioUrl;
+            audioPlayer.load();
+            playerPopup.style.display = 'flex';
+        } catch (error) {
+            console.error('Error playing song:', error);
+        }
+    }
+
+    function closePlayer() {
+        const playerPopup = document.getElementById('player-popup');
+        const audioPlayer = document.getElementById('audio-player');
+        playerPopup.style.display = 'none';
+        audioPlayer.pause();
+    }
+</script>
+
+</body>
+</html>
